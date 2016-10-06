@@ -1,0 +1,8 @@
+name = "Callback button"
+description = "Add callback button on your site"
+configure = admin/config/user-interface/Callback button
+dependencies[] = webform
+stylesheets[all][]  = css/callback_button.css
+core = 7.x
+
+

@@ -1,0 +1,217 @@
+<?php
+
+/**
+ * Implements hook_page_menu().
+ */
+function callback_button_menu() {
+  $items = array();
+
+  $items['admin/config/user-interface/callback_button'] = array(
+    'title' => 'Callback button',
+    'description' => 'Administer Callback button settings',
+    'page callback' => 'callback_button_settings_callback',
+    'access arguments' => array('access callback_button settings'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+function callback_button_block_info() {
+  $blocks['callback_button_form'] = array(
+    'info' => t('Callback button form'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  
+ $blocks['callback_button'] = array(
+    'info' => t('Callback button'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+function callback_button_block_view($delta = '') {
+  $block = array();
+   switch ($delta) {
+      case 'callback_button_form':
+        $block_loading =  module_invoke('webform', 'block_view', variable_get('callback-delta-block'));
+        $block['subject'] = '';
+        $block['content'] = render($block_loading['content']);
+        
+       break;
+
+       case 'callback_button':
+         $count_num = variable_get('callback-counter-number');
+         $count_name = "CALLBACKBUTTON";
+         $link = '<a href="#" class="callback-link" onclick="yaCounter'. str_replace(" ","",$count_num) . '.reachGoal(\'CALLBACKBUTTON\'); return true;"><div class ="callback-link-div">&#9990</div></a><div class="phone-call_wave phone-call_wave__stroke"></div>';
+         $block['subject'] = '';
+         $block['content'] = $link;
+         
+          drupal_add_js(array('callback_button' => array(
+            'bgcolor'       => variable_get('bg-color'),
+            'bghovercolor'  => variable_get('bg-hover-color'),
+            'telcolor'      => variable_get('tel-color'),
+            'beforetext'    => variable_get('callback-text-before'),
+            'bgformcolor'   => variable_get('bg-form-color'),
+            'aftertext'     => variable_get('callback-text-after'),
+            'telwavecolor'  => variable_get('tel-wave-color'),
+            'telhovercolor' => variable_get('tel-hover-color'),
+            )
+          ), 'setting');
+        drupal_add_js(drupal_get_path('module', 'callback_button') .'/js/callback_button.js');
+    }
+
+
+ return $block;
+}
+
+
+
+
+function callback_button_settings_callback(){
+  $form = drupal_get_form('callback_button_settings'); //получаем поля формы
+  $form = drupal_render($form); //рендерим форму
+  return $form;
+}
+
+function callback_button_settings($form, &$form_state){
+  $form=array();
+  $form['bg-color'] = array(
+    '#type' => 'textfield',
+    '#title' =>t('Background color'),
+    '#description' => 'Цвет фона кнопки по умолчанию вида "fff", КОД не может быть короче 3х символов!',
+    '#required'=>TRUE,
+    '#default_value' => variable_get('bg-color','000'),
+  );
+   $form['bg-hover-color'] = array(
+    '#type' => 'textfield',
+    '#title' =>t('Background hover color'),
+    '#description' => 'Цвет фона кнопки при наведении вида "fff", КОД не может быть короче 3х символов!',
+    '#required'=>TRUE,
+    '#default_value' => variable_get('bg-hover-color','ссс'),
+  );
+  $form['tel-color'] = array(
+    '#type' => 'textfield',
+    '#title' =>t('Telephone color'),
+    '#description' => 'Цвет фона трубки по умолчанию вида "fff", КОД не может быть короче 3х символов!',
+    '#required'=>TRUE,
+    '#default_value' => variable_get('tel-color','fff'),
+  );
+  $form['tel-hover-color'] = array(
+    '#type' => 'textfield',
+    '#title' =>t('Telephone hover color'),
+    '#description' => 'Цвет фона трубки при наведении вида "fff", КОД не может быть короче 3х символов!',
+    '#required'=>TRUE,
+    '#default_value' => variable_get('tel-hover-color','000'),
+  );
+  $form['tel-wave-color'] = array(
+    '#type' => 'textfield',
+    '#title' =>t('Telephone wave color'),
+    '#description' => 'Цвет волны  вида "fff", КОД не может быть короче 3х символов!',
+    '#required'=>TRUE,
+    '#default_value' => variable_get('tel-wave-color','ссс'),
+  );
+  $form['bg-form-color'] = array(
+    '#type' => 'textfield',
+    '#title' =>t('Background color form'),
+    '#description' => 'Цвет плашки  вида "fff", КОД не может быть короче 3х символов!',
+    '#required'=>TRUE,
+    '#default_value' => variable_get('bg-form-color','f2f2f2'),
+  );
+  $form['callback_delta_block'] = array(
+    '#type' => 'textfield',
+    '#title' =>t('Delta webform block'),
+    '#description' =>'Дельта блока вебформы вида "client-block-26", посмотреть можно в ID блока (будет чтото вроде webform-client-form-26),webform- отбрасываем',
+    '#required'=>TRUE,
+    '#default_value' => variable_get('callback-delta-block',' '),
+  );
+  $form['callback_text_before'] = array(
+    '#type' => 'textarea',
+    '#format' => filter_default_format(),
+    '#title' =>t('Текст перед формой'),
+    '#description' =>'Текст который будет выведен перед формой',
+    '#default_value' => variable_get('callback-text-before',''),
+  );
+  $form['callback_text_after'] = array(
+    '#type' => 'textarea',
+    '#format' => filter_default_format(),
+    '#title' =>t('Текст после формы'),
+    '#description' =>'Текст который будет выведен после формы',
+    '#default_value' => variable_get('callback-text-after',''),
+  );
+  $form['callback_counter_number'] = array(
+    '#type' => 'textfield',
+    '#title' =>t('Номер счетчика'),
+    '#description' =>'Номер счетчика в виде XXXXXX',
+    '#required'=>TRUE,
+    '#default_value' => variable_get('callback-counter-number',' '),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  dsm($form);
+  return $form;
+}
+function callback_button_settings_validate($form, &$form_state){
+  if(mb_strlen($form_state['values']['bg-color'])<3){
+    form_set_error('bg-color', t('Слишком короткий код. в поле '.$form['bg-color']['#title']));
+  }
+  if(mb_strlen($form_state['values']['tel-wave-color'])<3){
+    form_set_error('tel-wave-color', t('Слишком короткий код. в поле '.$form['tel-wave-color']['#title']));
+  }
+  if(mb_strlen($form_state['values']['bg-hover-color'])<3){
+    form_set_error('bg-hover-color', t('Слишком короткий код. '.$form['bg-hover-color']['#title']));
+  }
+  if(mb_strlen($form_state['values']['tel-color'])<3){
+    form_set_error('tel-color', t('Слишком короткий код. '.$form['tel-color']['#title']));
+  }
+  if(mb_strlen($form_state['values']['tel-hover-color'])<3){
+    form_set_error('tel-hover-color', t('Слишком короткий код. '.$form['tel-hover-color']['#title']));
+  }
+  if(mb_strlen($form_state['values']['callback_delta_block'])<3){
+    form_set_error('callback_delta_block', t('Слишком короткий код. '.$form['callback_delta_block']['#title']));
+  }
+  if(mb_strlen($form_state['values']['callback_counter_number'])<6){
+    form_set_error('callback_counter_number', t('Слишком короткий код. '.$form['callback_counter_number']['#title']));
+  }
+  if(mb_strlen($form_state['values']['bg-form-color'])<3){
+    form_set_error('bg-form-color', t('Слишком короткий код. '.$form['bg-form-color']['#title']));
+  }
+}
+
+
+function callback_button_settings_submit($form, &$form_state){
+  if(isset($form_state['values']['bg-color'])){
+    variable_set('bg-color', str_replace(" ","",$form_state['values']['bg-color']));
+  }
+  if(isset($form_state['values']['bg-hover-color'])){
+    variable_set('bg-hover-color', str_replace(" ","",$form_state['values']['bg-hover-color']));
+  }
+  if(isset($form_state['values']['tel-color'])){
+    variable_set('tel-color',str_replace(" ","",$form_state['values']['tel-color']));
+  }
+  if(isset($form_state['values']['tel-hover-color'])){
+    variable_set('tel-hover-color',str_replace(" ","",$form_state['values']['tel-hover-color']));
+  }
+  if(isset($form_state['values']['callback_delta_block'])){
+    variable_set('callback-delta-block', str_replace(" ","",$form_state['values']['callback_delta_block']));
+  }
+  if(isset($form_state['values']['callback_text_before'])){
+    variable_set('callback-text-before', $form_state['values']['callback_text_before']);
+  }
+  if(isset($form_state['values']['callback_text_before'])){
+    variable_set('callback-text-after',$form_state['values']['callback_text_after']);
+  }
+  if(isset($form_state['values']['callback_counter_number'])){
+    variable_set('callback-counter-number', str_replace(" ","",$form_state['values']['callback_counter_number']));
+  }
+  if(isset($form_state['values']['tel-wave-color'])){
+    variable_set('tel-wave-color',str_replace(" ","", $form_state['values']['tel-wave-color']));
+  }
+  if(isset($form_state['values']['bg-form-color'])){
+    variable_set('bg-form-color',str_replace(" ","", $form_state['values']['bg-form-color']));
+  }
+  drupal_set_message(t('Your configuration has been saved.'));
+  
+}
